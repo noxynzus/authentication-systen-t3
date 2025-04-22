@@ -8,23 +8,23 @@ const prisma = new PrismaClient();
 
 export const authRouter = router({
   register: publicProcedure
-    .input(z.object({ email: z.string().email(), password: z.string().min(6) }))
+    .input(z.object({ username: z.string(), password: z.string().min(6) }))
     .mutation(async ({ input }) => {
       const hashed = await bcrypt.hash(input.password, 10);
       const user = await prisma.user.create({
-        data: { email: input.email, password: hashed },
+        data: { username: input.username, password: hashed },
       });
-      return { id: user.id, email: user.email };
+      return { id: user.id, username: user.username };
     }),
 
   login: publicProcedure
-    .input(z.object({ email: z.string().email(), password: z.string() }))
+    .input(z.object({ username: z.string(), password: z.string() }))
     .mutation(async ({ input }) => {
-      const user = await prisma.user.findUnique({ where: { email: input.email } });
+      const user = await prisma.user.findUnique({ where: { username: input.username } });
       if (!user || !(await bcrypt.compare(input.password, user.password))) {
         throw new Error('Invalid credentials');
       }
-      const token = signToken({ id: user.id, email: user.email });
+      const token = signToken({ id: user.id, username: user.username });
       return { token };
     }),
 });
